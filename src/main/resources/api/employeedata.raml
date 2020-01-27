@@ -1,0 +1,58 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/62817da3-957d-4f06-bb87-cb52789b29b5/ # 
+version: v1
+title: EmployeeData
+types:
+  EmpData: !include Example/EmpdataType.raml
+/Employee:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: EmpData
+            example: !include Example/Empexample.json 
+  /{id}:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: EmpData
+              example: !include Example/Empexample.json 
+      
+    put:
+      body:
+        application/json:
+          type: EmpData
+          example: !include Example/Empexample.json
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Employee updated partially 
+
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: vendor deleted but not really
+  post:
+    body:
+      application/json:
+        type: EmpData
+          
+        example: !include Example/Empexample.json
+    responses:
+      201:
+        body:
+          application/json:
+           
+            example: "Employee  Created"    
+  
+  
+        
+      

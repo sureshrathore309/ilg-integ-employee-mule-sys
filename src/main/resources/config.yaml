@@ -1,0 +1,11 @@
+Database: 
+  host: "db4free.net"
+  port: "3306"
+  user: "muleassignment"
+  database: "employee112"
+  
+  
+Request:
+  host: "dummy.restapiexample.com"
+  basepath: "/api/v1"
+  path:  "/employees"
