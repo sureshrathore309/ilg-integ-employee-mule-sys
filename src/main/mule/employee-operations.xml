@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config" doc:id="48d3c36c-db39-4096-831a-dcc0b44e956f">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+
+	<http:request-config name="HTTP_Request_configuration"
+		doc:name="HTTP Request configuration" doc:id="2a5e01a7-657c-4bfa-8a77-8535b196e2ec"
+		basePath="${Request.basepath}">
+		<http:request-connection host="${Request.host}" />
+	</http:request-config>
+	<db:config name="Database_Config" doc:name="Database Config"
+		doc:id="30b868ac-e01b-4e17-a6d6-df951091d135">
+		<db:my-sql-connection host="${Database.host}"
+			port="${Database.port}" user="${Database.user}" password="Kailasha@123"
+			database="${Database.database}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties"
+		doc:id="9c5263d8-d037-47e2-ab20-cf178f92d390" file="config.yaml" />
+	<flow name="sf-impl-get-employees" doc:id="3a1cf1ea-3290-4cc4-8717-ad0a99befe88">
+		<http:request method="GET" doc:name="HTTP GET Employee API"
+			doc:id="705a29e4-9a9a-44d1-a38b-ee882a06cdcf" config-ref="HTTP_Request_configuration"
+			path="${Request.path}" target="vEmployeeRecords" targetValue="#[output application/json
+---
+payload.data]" />
+		<ee:transform doc:name="DW Map with Required Fields"
+			doc:id="7ad8fdae-01f1-4df7-a9cd-06ab93cd50eb">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.vEmployeeRecords map {
+	'ID': $.id,
+	'name': $.employee_name,
+	'salary': $.employee_salary,
+	'age': $.employee_age
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:bulk-insert doc:name="Bulk insert for Employee Array"
+			doc:id="495a381a-50d7-4f60-ba88-3da481a6c3b4" config-ref="Database_Config">
+			<db:sql>INSERT INTO EmployeeData( id, employee_name, employee_salary,
+				employee_age) VALUES (:ID, :name, :salary, :age);</db:sql>
+		</db:bulk-insert>
+		<os:store doc:name="Store Employee Rercords" doc:id="21ae9507-fc61-4e32-ae77-e6bf848b345c" key="employee" >
+			<os:value ><![CDATA[#[output application/json
+---
+vars.vEmployeeRecords map {
+	"id": $.id,
+	"name": $.employee_name
+}]]]></os:value>
+		</os:store>
+		<set-payload value='#[{
+	"message": "record inserted in database"
+}]' doc:name="PF SET Final Payload Response" doc:id="f475d5f9-efee-496b-8f21-eccb1bb2c87b" />
+	
+</flow>
+	<sub-flow name="sf-employee-add" doc:id="a518e6ef-3408-4f65-840f-632661c62175" >
+		<db:insert doc:name="Insert Employee Record" doc:id="42878ac9-f1d1-4442-9cc2-cfaa45c32155" config-ref="Database_Config">
+			<db:sql >INSERT INTO EmployeeData( id, employee_name, employee_salary,
+employee_age) 
+VALUES (:ID, :name, :salary, :age);</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+
+	'ID': payload.id,
+	'name': payload.employee_name,
+	'salary': payload.employee_salary,
+	'age': payload.employee_age
+	
+	
+}]]]></db:input-parameters>
+		</db:insert>
+		<set-payload value="#[output application/json
+---
+payload]" doc:name="PF SET Final Payload Response" doc:id="cfe781aa-4814-4526-952a-68892c701334" />
+	
+</sub-flow>
+	<sub-flow name="getemployeebyID" doc:id="4e126038-8d0f-48fe-a0a3-979bfb112ed1" >
+		<os:retrieve doc:name="Retrieve" doc:id="103bfa99-016d-4984-aea7-fee74af6da45" key="employee" target="vEmployee">
+			<os:default-value ><![CDATA[#[output application/json
+---
+[]]]]></os:default-value>
+		</os:retrieve>
+		<choice doc:name="Choice" doc:id="24571e4a-b4e9-4150-b7d5-900e085b6ee4" >
+			<when expression="#[!(vars.vEmployee.id contains vars.vEmployeeId)]">
+				<db:select doc:name="Select Employee Record By ID" doc:id="0cd4dbde-1003-4b3f-b02c-e8490cc0d6e9" config-ref="Database_Config" target="vEmp" targetValue="#[output application/json
+---
+payload]">
+			<db:sql>select id, employee_name as name from EmployeeData where Id = :ID</db:sql>
+			<db:input-parameters><![CDATA[#[{'ID':vars.vEmployeeId}]]]></db:input-parameters>
+		</db:select>
+				<os:store doc:name="Adding Record in existing array" doc:id="268aa60d-8a5d-4bac-81a8-d75d3ce7fa37" key="employee">
+					<os:value><![CDATA[#[vars.vEmployee ++ vars.vEmp]]]></os:value>
+				</os:store>
+				<set-payload value="#[output application/json
+---
+vars.vEmp]" doc:name="PF SET Final Response" doc:id="a6c26a10-fd7d-4c69-9893-5c9f8dbf8664" />
+			</when>
+			<otherwise>
+				<set-payload value="#[output application/json
+---
+vars.vEmployee filter ((item, index) -&gt; item.id ~= vars.vEmployeeId)]" doc:name="PF SET Final Response" doc:id="f14a6e15-d45c-4e04-9bce-133a9091ed40" />
+			</otherwise>
+		</choice>
+	
+</sub-flow>
+</mule>

@@ -1,0 +1,32 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/62817da3-957d-4f06-bb87-cb52789b29b5/ # 
+version: v1
+title: EmployeeData
+types:
+  EmpData: !include example/emp-data-type.raml
+/employee:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: EmpData
+            example: !include example/empExample.json 
+  /{id}:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: EmpData
+              example: !include example/empExample.json        
+  post:
+    body:
+      application/json:
+        type: EmpData          
+        example: !include example/empExample.json
+    responses:
+      201:
+        body:
+          application/json:           
+            example: "Employee  Created"    

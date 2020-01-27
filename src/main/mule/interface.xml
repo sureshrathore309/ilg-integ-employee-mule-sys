@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-    <apikit:config name="employeedata-config" api="employeedata.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="employeedata-config" api="employee-data.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="employeedata-main">
         <http:listener config-ref="HTTP_Listener_config" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -120,103 +120,14 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="put:\Employee\(Id):application\json:employeedata-config">
-        <ee:transform doc:id="3c5ec817-cd5b-44e2-9b5b-ec26fdcc2a8e">
-            <ee:variables>
-                <ee:set-variable variableName="Id"><![CDATA[attributes.uriParams.'Id']]></ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="15e972ce-d990-453b-aaaa-d37461b829d2">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "Employee updated partially"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+    <flow name="get:\employee:employeedata-config">
+		<flow-ref doc:name="Refer to get-employees" doc:id="2608ecaf-daa4-4589-a94e-cb972a99434e" name="sf-impl-get-employees" />
     </flow>
-    <flow name="delete:\Employee\(Id):employeedata-config">
-        <ee:transform doc:id="b5c9f9d3-9aae-41cc-8b7b-a876cfd60708">
-            <ee:variables>
-                <ee:set-variable variableName="Id"><![CDATA[attributes.uriParams.'Id']]></ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="900d3114-b522-43eb-bdcd-740335432978">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "vendor deleted but not really"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+    <flow name="get:\employee\(id):employeedata-config">
+        <set-variable value="#[attributes.uriParams.id]" doc:name="FV SET vData" doc:id="4872b304-896d-4ba4-acb3-0892cf9e791c" variableName="vEmployeeId" />
+		<flow-ref doc:name="Refer to get-employee-by-id" doc:id="4d968560-c338-4f95-ab59-8b797c7e1298" name="getemployeebyID" />
     </flow>
-    <flow name="get:\Employee:employeedata-config">
-        <flow-ref doc:name="Refer to get-employees" doc:id="2608ecaf-daa4-4589-a94e-cb972a99434e" name="getEmployee" />
-    </flow>
-    <flow name="get:\Employee\(Id):employeedata-config">
-        <set-variable value="#[attributes.uriParams.Id]" doc:name="FV SET vData" doc:id="4872b304-896d-4ba4-acb3-0892cf9e791c" variableName="data" />
-        <flow-ref doc:name="Flow Reference" doc:id="4d968560-c338-4f95-ab59-8b797c7e1298" name="getemployeebyID" />
-    </flow>
-    <flow name="post:\Employee:application\json:employeedata-config">
-        <logger level="INFO" doc:name="Logger" doc:id="a823e203-7e9d-4d54-aea9-db79aa1598d4" message="111111111111111111111111111"/>
-		<flow-ref doc:name="Flow Reference" doc:id="3b352043-3741-4151-91d4-89fe2282ddca" name="insert" />
-    </flow>
-    <flow name="put:\Employee\(id):application\json:employeedata-config">
-        <ee:transform>
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "Employee updated partially"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
-    <flow name="delete:\Employee\(id):employeedata-config">
-        <ee:transform>
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "vendor deleted but not really"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
-    <flow name="get:\Employee\(id):employeedata-config">
-        <ee:transform>
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  id: "1",
-  employee_name: "Dipali",
-  employee_salary: "30000",
-  employee_age: "22"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+    <flow name="post:\employee:application\json:employeedata-config">
+		<flow-ref doc:name="Refer to employee add " doc:id="3b352043-3741-4151-91d4-89fe2282ddca" name="sf-employee-add" />
     </flow>
 </mule>
