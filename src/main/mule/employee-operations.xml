@@ -13,25 +13,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
-	<http:listener-config name="HTTP_Listener_config"
-		doc:name="HTTP Listener config" doc:id="48d3c36c-db39-4096-831a-dcc0b44e956f">
-		<http:listener-connection host="0.0.0.0"
-			port="8081" />
-	</http:listener-config>
-
-	<http:request-config name="HTTP_Request_configuration"
-		doc:name="HTTP Request configuration" doc:id="2a5e01a7-657c-4bfa-8a77-8535b196e2ec"
-		basePath="${Request.basepath}">
-		<http:request-connection host="${Request.host}" />
-	</http:request-config>
-	<db:config name="Database_Config" doc:name="Database Config"
-		doc:id="30b868ac-e01b-4e17-a6d6-df951091d135">
-		<db:my-sql-connection host="${Database.host}"
-			port="${Database.port}" user="${Database.user}" password="Kailasha@123"
-			database="${Database.database}" />
-	</db:config>
-	<configuration-properties doc:name="Configuration properties"
-		doc:id="9c5263d8-d037-47e2-ab20-cf178f92d390" file="config.yaml" />
+	
 	<flow name="sf-impl-get-employees" doc:id="3a1cf1ea-3290-4cc4-8717-ad0a99befe88">
 		<http:request method="GET" doc:name="HTTP GET Employee API"
 			doc:id="705a29e4-9a9a-44d1-a38b-ee882a06cdcf" config-ref="HTTP_Request_configuration"
@@ -51,7 +33,19 @@ vars.vEmployeeRecords map {
 	'age': $.employee_age
 }]]></ee:set-payload>
 			</ee:message>
-		</ee:transform>
+			<ee:variables >
+				<ee:set-variable variableName="empData" ><![CDATA[%dw 2.0
+output application/csv
+---
+vars.vEmployeeRecords map {
+	'ID': $.id,
+	'name': $.employee_name,
+	'salary': $.employee_salary,
+	'age': $.employee_age
+}]]></ee:set-variable>
+			</ee:variables>
+		
+</ee:transform>
 		<db:bulk-insert doc:name="Bulk insert for Employee Array"
 			doc:id="495a381a-50d7-4f60-ba88-3da481a6c3b4" config-ref="Database_Config">
 			<db:sql>INSERT INTO EmployeeData( id, employee_name, employee_salary,
@@ -65,7 +59,27 @@ vars.vEmployeeRecords map {
 	"name": $.employee_name
 }]]]></os:value>
 		</os:store>
-		<set-payload value='#[{
+		<email:send doc:name="Send Employee as Email" doc:id="fac3ada1-483d-44f8-8514-dba5e241be27" config-ref="Email_SMTP" fromAddress="suresh.queshub@queshub.com" subject="Employee Records">
+			<email:to-addresses >
+				<email:to-address value="suresh.rathore@apisero.com" />
+				<email:to-address value="sureshrathore309@gmail.com" />
+				<email:to-address value="suresh.rathore0721@gmail.com" />
+			</email:to-addresses>
+			<email:body >
+				<email:content ><![CDATA[Hi,
+
+Please find the employee records
+
+Regards,
+Suresh Rathore]]></email:content>
+			</email:body>
+			<email:attachments ><![CDATA[#[{
+	"employee_data.csv":vars.empData
+}]]]></email:attachments>
+		</email:send>
+		<set-payload value='#[output application/json
+---
+{
 	"message": "record inserted in database"
 }]' doc:name="PF SET Final Payload Response" doc:id="f475d5f9-efee-496b-8f21-eccb1bb2c87b" />
 	

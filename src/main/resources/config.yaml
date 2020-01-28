@@ -3,9 +3,18 @@ Database:
   port: "3306"
   user: "muleassignment"
   database: "employee112"
-  
+  password: "![MZA8MpdPWKpU65yW6QneNA==]"
   
 Request:
   host: "dummy.restapiexample.com"
   basepath: "/api/v1"
   path:  "/employees"
+  
+smtp:
+  user: "suresh.queshub@gmail.com"
+  password: "![KVCaHqmpek0fRaV/Zk060g==]"
+  from: "sureshrathore308@gmail.com"
+  to: "sureshrathore308@gmail.com"
+  host: "smtp.gmail.com"
+  port: "587"
+  
