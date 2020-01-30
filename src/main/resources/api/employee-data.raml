@@ -1,10 +1,22 @@
 #%RAML 1.0
-baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/62817da3-957d-4f06-bb87-cb52789b29b5/ # 
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/3eb37068-0248-4788-9ba0-44999ec36f19/ # 
+traits:
+  client-id-required:
+    headers:
+      client_id:
+        type: string
+        required: true
+      client_secret:
+        type: string
+        required: true
+
 version: v1
 title: EmployeeData
 types:
   EmpData: !include example/emp-data-type.raml
 /employee:
+  is:
+    [client-id-required:]
   get:
     responses:
       200:
@@ -13,20 +25,22 @@ types:
             type: EmpData
             example: !include example/empExample.json 
   /{id}:
+    is:
+      [client-id-required:]
     get:
       responses:
         200:
           body:
             application/json:
               type: EmpData
-              example: !include example/empExample.json        
+              example: !include example/employeeById.json      
   post:
     body:
       application/json:
         type: EmpData          
-        example: !include example/empExample.json
+        example: !include example/createEmployee.json
     responses:
       201:
         body:
           application/json:           
-            example: "Employee  Created"    
+            example: "Employee  Created"
